@@ -1,0 +1,81 @@
+AutoThemeSwitchingEnabled: true
+Autostart:
+  Validate: true
+WindowsThemeMode:
+  Enabled: true
+  DarkThemePath: C:\Windows\Resources\Themes\dark.theme
+  LightThemePath: C:\Windows\Resources\Themes\aero.theme
+  MonitorActiveTheme: false
+AppsSwitch:
+  Enabled: true
+  Component:
+    Mode: Switch
+SystemSwitch:
+  Enabled: true
+  Component:
+    Mode: Switch
+    TaskbarSwitchDelay: 1200
+    TaskbarColorOnAdaptive: false
+    TaskbarColorWhenNonAdaptive: Light
+ColorFilterSwitch:
+  Enabled: false
+  Component: {}
+OfficeSwitch:
+  Enabled: false
+  Component:
+    Mode: Switch
+    LightTheme: 0
+    DarkTheme: 4
+Sunrise: 2022-04-12T07:00:00.0000000
+Sunset: 2022-04-12T20:00:00.0000000
+Location:
+  PollingCooldownTimeSpan: 1.00:00:00
+  Enabled: true
+  UseGeolocatorService: true
+  SunsetOffsetMin: 0
+  SunriseOffsetMin: 0
+Tunable:
+  BatterySliderDefaultValue: 25
+  DisableEnergySaverOnThemeSwitch: false
+  UseLogonTask: false
+  Debug: false
+  DebugTimerMessage: false
+  ShowTrayIcon: true
+  UICulture: es
+GPUMonitoring:
+  Enabled: false
+  Threshold: 30
+  MonitorTimeSpanMin: 1
+  Samples: 1
+Events:
+  DarkThemeOnBattery: false
+  SystemResumeTrigger: true
+Hotkeys:
+  Enabled: false
+  ForceLightHotkey: 
+  ForceDarkHotkey: 
+  NoForceHotkey: 
+WallpaperSwitch:
+  Enabled: false
+  Component:
+    TypeLight: Individual
+    TypeDark: Individual
+    Position: Fill
+    GlobalWallpaper:
+      Light: 
+      Dark: 
+    SolidColors:
+      Light: '#FFFFFF'
+      Dark: '#000000'
+    Monitors: []
+Updater:
+  AutoInstall: false
+  Enabled: true
+  Silent: false
+  DaysBetweenUpdateCheck: 7
+  CheckOnStart: false
+  VersionQueryUrl: 
+  DownloadBaseUrl: 
+  ZipCustomUrl: 
+  HashCustomUrl: 
+
