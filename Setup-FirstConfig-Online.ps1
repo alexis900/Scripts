@@ -2,12 +2,13 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 <#
 .SYNOPSIS
-Version: 0.4.0
+Version: 0.4.1
 This script will install and configure the following components on the target home computer in Windows 11 or later:
 - Windows Update
 - Install winget
 - Install initial software
 - Configure Windows Shell
+- Import Shedule Tasks 
 - Cleanup disk space
 
 .EXAMPLE
@@ -113,6 +114,13 @@ function ConfigWindowsTerminal {
     Copy-Item -Path "$PSScriptRoot\Configs\settings.json" -Destination "$env:USERPROFILE\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 }
 
+function WindowsSheduler {
+    # Create Sheduler Task to Sync Time 
+    Register-ScheduledTask -Xml (Get-Content ("$PSScriptRoot\Configs\Scheduler\SyncTime.xml") | Out-String ) -TaskName "SyncTime"
+    # Create Sheduler Task to Update Apps with winget
+    Register-ScheduledTask -Xml (Get-Content ("$PSScriptRoot\Configs\Scheduler\UpdateAll.xml") | Out-String ) -TaskName "UpdateAll"
+}
+
 function ConfigApps {
     ConfigAutoDarkMode
     #ConfigWindowsTerminal
@@ -121,8 +129,10 @@ function ConfigApps {
 WindowsUpdateSettings
 ExplorerSettings
 InstallWinGet
+WindowsSheduler
 InstallApps
 ConfigApps
+
 
 # Clean the hard disk with cleanmgr for better performance
 cleanmgr /verylowdisk
