@@ -2,11 +2,13 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 <#
 .SYNOPSIS
-Version: 0.3.0
+Version: 0.4.0
 This script will install and configure the following components on the target home computer in Windows 11 or later:
 - Windows Update
 - Install winget
+- Install initial software
 - Configure Windows Shell
+- Cleanup disk space
 
 .EXAMPLE
 Run the script with:
@@ -33,7 +35,7 @@ function WindowsUpdateSettings {
 function InstallWinGet {
     Import-Module Appx
     if (Test-Path -Path "$PSScriptRoot\Apps\") {
-        
+        # No need to create the folder
     } else {
         New-Item -Path "$PSScriptRoot\Apps\" -ItemType Directory
     }
@@ -53,32 +55,77 @@ function InstallWinGet {
     }
 }
 
-function Settings {
+function ExplorerSettings {
     # Set Start Menu in Left
     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'TaskbarAl' -Value 0
     # Hide Chat in Taskbar
     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'TaskbarMn' -Value 0
+    # Hide Taskview in Taskbar
+    Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'ShowTaskViewButton' -Value 0
     # Change in Explorer the initial location to Computer and not Home Folder
     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'Launch to' -Value 1
-    # Set Windows Terminal as default
-    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'NewProgID' -Value 'Microsoft.WindowsTerminal_8wekyb3d8bbwe'
-    # Set Start Menu desing
+    # Allwais show file extensions in Explorer
+    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'ShowFileExt' -Value 1
     # Activate the Memory Integrity Protection
     #Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\SystemGuard' -Name 'Enabled' -Value 1
     #HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\SystemGuard
+    
+}
+
+function InstallApps {
+    winget uninstall MicrosoftTeams_8wekyb3d8bbwe --accept-source-agreements # Uninstall Microsoft Teams
+    winget upgrade --all --accept-source-agreements # Update all apps
+    winget install --id=Microsoft.VisualStudioCode -h --accept-package-agreements --accept-source-agreements # VisualStudioCode
+    winget install --id=Git.Git -h --accept-package-agreements --accept-source-agreements # Git
+    winget install --id=7zip.7zip -h --accept-package-agreements --accept-source-agreements # 7zip
+    winget install --id=calibre.calibre -h --accept-package-agreements --accept-source-agreements # Calibre
+    winget install --id=Valve.Steam -h --accept-package-agreements --accept-source-agreements # Steam
+    winget install --id=qBittorrent.qBittorrent -h --accept-package-agreements --accept-source-agreements # qBittorrent
+    winget install --id=Microsoft.OpenJDK.17 -h --accept-package-agreements --accept-source-agreements # Java
+    winget install --id=TheDocumentFoundation.LibreOffice -h --accept-package-agreements --accept-source-agreements # LibreOffice
+    winget install --id=XP8JK4HZBVF435 -h --accept-package-agreements --accept-source-agreements # AutoDarkModeApp
+    winget install --id=9MZ1SNWT0N5D -h --accept-package-agreements --accept-source-agreements # PowerShell 7
+    winget install --id=9NBDXK71NK08 -h --accept-package-agreements --accept-source-agreements # WhatsApp Beta
+    winget install --id=9N97ZCKPD60Q -h --accept-package-agreements --accept-source-agreements # Unigram
+    winget install --id=XPDP273C0XHQH2 -h --accept-package-agreements --accept-source-agreements # Adobe Acrobat Reader DC
+    winget install --id=XPDM1ZW6815MQM -h --accept-package-agreements --accept-source-agreements # VLC
+    winget install --id=9NCBCSZSJRSB -h --accept-package-agreements --accept-source-agreements # Spotify
+    winget install --id=9N1Z0JXB224X -h --accept-package-agreements --accept-source-agreements # UUP Media Creator
+    winget install --id=9NGHP3DX8HDX -h --accept-package-agreements --accept-source-agreements # Files
+    winget install --id=9ND14WHFRGSX -h --accept-package-agreements --accept-source-agreements # Modern Winver
+}
+
+function ConfigAutoDarkMode {
+    if (Test-Path "$env:APPDATA\AutoDarkMode\") {
+        # No need to create the folder
+    } else {
+        New-Item -Path "$env:APPDATA\AutoDarkMode\" -ItemType Directory
+    }
+    # Copy the config file and initialize the AutoDarkMode
+    Copy-Item -Path "$PSScriptRoot\Configs\config.yaml" -Destination "$env:APPDATA\AutoDarkMode\config.yaml"
+    Start-Process -FilePath "$env:USERPROFILE\AppData\Local\Programs\AutoDarkMode\AutoDarkModeSvc.exe"
+}
+
+function ConfigWindowsTerminal {
+    # Set Windows Terminal as default
+    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'NewProgID' -Value 'Microsoft.WindowsTerminal_8wekyb3d8bbwe'
+    # Copy Settings file
+    Copy-Item -Path "$PSScriptRoot\Configs\settings.json" -Destination "$env:USERPROFILE\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+}
+
+function ConfigApps {
+    ConfigAutoDarkMode
+    #ConfigWindowsTerminal
 }
 
 WindowsUpdateSettings
+ExplorerSettings
 InstallWinGet
-Settings
+InstallApps
+ConfigApps
 
-winget upgrade --all --accept-source-agreements #Update all apps
-winget install --id=Microsoft.VisualStudioCode -h --accept-package-agreements --accept-source-agreements #VisualStudioCode
-winget install --id=XP8JK4HZBVF435 -h --accept-package-agreements --accept-source-agreements #AutoDarkModeApp
 # Clean the hard disk with cleanmgr for better performance
-C:\Windows\System32\cleanmgr.exe /s /t /d
-# Install AutoDarkModeApp
-#$env:APPDATA\\Local\Programs\AutoDarkMode\AutoDarkModeApp.exe
+cleanmgr /verylowdisk
 
 
 Write-Host -NoNewline -Object 'Press any key to return to the main menu...' -ForegroundColor Yellow
