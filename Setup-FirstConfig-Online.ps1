@@ -46,7 +46,7 @@ function TestPath ($Path) {
 function InstallWinGet {
     Import-Module Appx
     $URLVClibs = "https://download.microsoft.com/download/4/7/c/47c6134b-d61f-4024-83bd-b9c9ea951c25/14.0.30035.0-Desktop/Microsoft.VCLibs.x64.14.00.Desktop.appx"
-    $URLAppInstaller = "https://github.com/microsoft/winget-cli/releases/download/v1.2.10271/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+    $URLAppInstaller = "https://github.com/microsoft/winget-cli/releases/download/v1.3.1391-preview/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     $VCLibs = $URLVClibs.Split('/')[-1]
     $AppInstaller = $URLAppInstaller.Split('/')[-1]
     $VCLibsPath = "$appsDir\$VCLibs"
@@ -97,29 +97,35 @@ function ExplorerSettings {
 function InstallApps {
     winget uninstall MicrosoftTeams_8wekyb3d8bbwe --accept-source-agreements # Uninstall Microsoft Teams
     winget upgrade --all --accept-source-agreements # Update all apps
-    winget install --id=Microsoft.VisualStudioCode -h --accept-package-agreements --accept-source-agreements # VisualStudioCode
-    winget install --id=Git.Git -h --accept-package-agreements --accept-source-agreements # Git
-    winget install --id=7zip.7zip -h --accept-package-agreements --accept-source-agreements # 7zip
-    winget install --id=calibre.calibre -h --accept-package-agreements --accept-source-agreements # Calibre
-    winget install --id=Valve.Steam -h --accept-package-agreements --accept-source-agreements # Steam
-    winget install --id=Microsoft.OpenJDK.17 -h --accept-package-agreements --accept-source-agreements # Java
-    winget install --id=TheDocumentFoundation.LibreOffice -h --accept-package-agreements --accept-source-agreements # LibreOffice
-    winget install --id=9NFH4HJG2Z9H -h --accept-package-agreements --accept-source-agreements # qBittorrent
-    winget install --id=XP8JK4HZBVF435 -h --accept-package-agreements --accept-source-agreements # AutoDarkModeApp
-    winget install --id=9MZ1SNWT0N5D -h --accept-package-agreements --accept-source-agreements # PowerShell 7
-    winget install --id=9NBDXK71NK08 -h --accept-package-agreements --accept-source-agreements # WhatsApp Beta
-    winget install --id=9N97ZCKPD60Q -h --accept-package-agreements --accept-source-agreements # Unigram
-    winget install --id=XPDP273C0XHQH2 -h --accept-package-agreements --accept-source-agreements # Adobe Acrobat Reader DC
-    winget install --id=XPDM1ZW6815MQM -h --accept-package-agreements --accept-source-agreements # VLC
-    winget install --id=9NCBCSZSJRSB -h --accept-package-agreements --accept-source-agreements # Spotify
-    winget install --id=9N1Z0JXB224X -h --accept-package-agreements --accept-source-agreements # UUP Media Creator
-    winget install --id=9NGHP3DX8HDX -h --accept-package-agreements --accept-source-agreements # Files
-    winget install --id=9ND14WHFRGSX -h --accept-package-agreements --accept-source-agreements # Modern Winver
-    winget install --id=9PMMSR1CGPWG -h --accept-package-agreements --accept-source-agreements # HEIF Image Extensions
-    winget install --id=9N95Q1ZZPMH4 -h --accept-package-agreements --accept-source-agreements # MPEG-2 Video Extension
-    winget install --id=9MVZQVXJBQ9V -h --accept-package-agreements --accept-source-agreements # AV1 Video Extension
-    winget install --id=9PG2DK419DRG -h --accept-package-agreements --accept-source-agreements # Webp Image Extensions
-    winget install --id=9N4WGH0Z6VHQ -h --accept-package-agreements --accept-source-agreements # HEVC Video Extensions
+    $Apps = 
+    @('XP9KHM4BK9FZ7Q', # VisualStudioCode
+    'Git.Git', # Git
+    '7zip.7zip', # 7zip
+    'calibre.calibre', # Calibre
+    'Valve.Steam', # Steam
+    'Microsoft.OpenJDK.17', # Java
+    'TheDocumentFoundation.LibreOffice', # LibreOffice
+    '9NFH4HJG2Z9H', #qBittorrent
+    'XP8JK4HZBVF435', #AutoDarkModeApp
+    '9MZ1SNWT0N5D', # PowerShell Core
+    '9NBDXK71NK08', # WhatsApp Beta
+    '9N97ZCKPD60Q', # Unigram
+    'XPDP273C0XHQH2', # Adobe Acrobat Reader DC
+    'XPDM1ZW6815MQM', # VLC
+    '9NCBCSZSJRSB', # Spotify
+    '9N1Z0JXB224X', # UUP Media Creator
+    '9NGHP3DX8HDX', # Files
+    '9ND14WHFRGSX', # Modern Winver
+    '9PMMSR1CGPWG', # HEIF Image Extensions
+    '9N95Q1ZZPMH4', # MPEG-2 Video Extension
+    '9MVZQVXJBQ9V', # AV1 Video Extension
+    '9PG2DK419DRG', # Webp Image Extensions
+    '9N4WGH0Z6VHQ' # HEVC Video Extensions
+    )
+
+    foreach ($App in $Apps) {
+        winget install --id=$App --silent --accept-package-agreements --accept-source-agreements
+    }
 }
 
 function ConfigAutoDarkMode {
@@ -152,14 +158,14 @@ function ConfigApps {
 
 WindowsUpdateSettings
 InstallWinGet
-WindowsSheduler
 InstallApps
+WindowsSheduler
 ExplorerSettings
 ConfigApps
 
 
 # Clean the hard disk with cleanmgr for better performance
-cleanmgr /verylowdisk
+#cleanmgr /verylowdisk
 
 
 Write-Host -NoNewline -Object 'Press any key to return to the main menu...' -ForegroundColor Yellow
