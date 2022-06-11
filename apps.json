@@ -1,0 +1,86 @@
+[
+    {
+        "name" : "Git",
+        "id" : "Git.Git"
+    },
+    {
+        "name" : "7-Zip",
+        "id" : "7-Zip.7-Zip"
+    },
+    {
+        "name" : "Calibre",
+        "id" : "Calibre.Calibre"
+    },
+    {
+        "name" : "Steam",
+        "id" : "Valve.Steam"
+    },
+    {
+        "name" : "OpenJDK",
+        "id" : "Microsoft.OpenJDK.17"
+    },
+    {
+        "name": "LibreOffice",
+        "id": "TheDocumentFoundation.LibreOffice"
+    },
+    {
+        "name": "Visual Studio Code",
+        "id": "XP9KHM4BK9FZ7Q"
+    },
+    {
+        "name": "qBittorrent",
+        "id": "9NFH4HJG2Z9H"
+    },
+    {
+        "name": "AutoDarkModeApp",
+        "id": "XP8JK4HZBVF435"
+    },
+    {
+        "name": "PowerShell Core",
+        "id": "9MZ1SNWT0N5D"
+    },
+    {
+        "name": "WhatsApp Beta",
+        "id": "9NBDXK71NK08"
+    },
+    {
+        "name": "Adobe Acrobat Reader DC",
+        "id": "XPDP273C0XHQH2"
+    },
+    {
+        "name": "Spotify",
+        "id": "9NCBCSZSJRSB"
+    },
+    {
+        "name": "UUP Media Creator",
+        "id": "9N1Z0JXB224X"
+    },
+    {
+        "name": "Files",
+        "id": "9NGHP3DX8HDX"
+    },
+    {
+        "name": "Modern Winver",
+        "id": "9ND14WHFRGSX"
+    },
+    {
+        "name": "HEIF Image Extensions",
+        "id": "9PMMSR1CGPWG"
+    },
+    {
+        "name": "MPEG-2 Video Extension",
+        "id": "9N95Q1ZZPMH4"
+    },
+    {
+        "name": "AV1 Video Extension",
+        "id": "9MVZQVXJBQ9V"
+    },
+    {
+        "name": "Webp Image Extensions",
+        "id": "9PG2DK419DRG"
+    },
+    {
+        "name": "HEVC Video Extensions",
+        "id": "9N4WGH0Z6VHQ"
+    }
+]

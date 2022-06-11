@@ -2,7 +2,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 <#
 .SYNOPSIS
-Version: 0.4.2
+Version: 0.4.3
 This script will install and configure the following components on the target home computer in Windows 11 or later:
 - Windows Update
 - Install winget
@@ -22,6 +22,9 @@ Run the script with:
 $appsDir = "$PSScriptRoot\Apps"
 $configDir = "$PSScriptRoot\Configs"
 
+# Get Windows build number
+$currentWindowsBuild = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'CurrentBuild').CurrentBuild
+
 function WindowsUpdateSettings {
     $wupdate = {
         Install-WindowsUpdate -NotCategory "Drivers" -MicrosoftUpdate -AcceptAll -IgnoreReboot
@@ -36,9 +39,7 @@ function WindowsUpdateSettings {
     }  
 }
 function TestPath ($Path) {
-    if (Test-Path $Path) {
-        # No action required
-    } else {
+    if (-not(Test-Path $Path)) {
         New-Item -ItemType Directory -Path $Path
     }
 }
@@ -54,11 +55,11 @@ function InstallWinGet {
 
     TestPath $appsDir
 
-    if (Test-Path -Path "$VCLibsPath") {
-        Add-AppxPackage -Path "$VCLibsPath"
+    if (Test-Path -Path "$VCLibsPath" -and $currentWindowsBuild -lt 22000) {
+            Add-AppxPackage -Path "$VCLibsPath"
     } else {
-        Invoke-WebRequest -Uri $URLVClibs -OutFile $VCLibsPath
-        Add-AppxPackage -Path $VCLibsPath
+            Invoke-WebRequest -Uri $URLVClibs -OutFile $VCLibsPath
+            Add-AppxPackage -Path $VCLibsPath
     }
     
     if (Test-Path -Path $AppInstallerPath) {
@@ -70,24 +71,34 @@ function InstallWinGet {
 }
 
 function ExplorerSettings {
-    # Set Start Menu in Left
-    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'TaskbarAl' -Value 0
-    # Hide Chat in Taskbar
-    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'TaskbarMn' -Value 0
-    # Hide Taskview in Taskbar
-    Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'ShowTaskViewButton' -Value 0
-    # Hide Taskview in Taskbar
-    Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'Start_Layout' -Value 1
-    # Change in Explorer the initial location to Computer and not Home Folder
-    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'Launch to' -Value 1
     # Allwais show file extensions in Explorer
     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'ShowFileExt' -Value 1
     # Show the full path in Explorer
     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'ShowFullPathInTitle' -Value 1
-    # Enable Location Settings
-    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location' -Name 'Value' -Value 'Allow'
-    # Disable Location Settings in MS Teams
-    #Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location\MicrosoftTeams_8wekyb3d8bbwe' -Name 'Value' -Value 'Deny'
+    if ($currentWindowsBuild -ge 17763 ) { # Windows 10 1809
+        #Enable Clipboard History Settings
+        Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Clipboard' -Name 'EnableClipboardHistory' -Value 1
+    }
+
+    if ($currentWindowsBuild -ge 22000) { # Windows 11 21H2
+        # Set Start Menu in Left
+        Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'TaskbarAl' -Value 0
+        # Hide Chat in Taskbar
+        Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'TaskbarMn' -Value 0
+        # Hide Taskview in Taskbar
+        Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'ShowTaskViewButton' -Value 0
+        # Hide Taskview in Taskbar
+        Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'Start_Layout' -Value 1
+        # Disable show recent files in Start Menu
+        Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\' -Name 'Start_TrackDocs' -Value 0
+        # Enable Location Settings
+        Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location' -Name 'Value' -Value 'Allow'
+    }
+
+    if ($currentWindowsBuild -ge 22621) { # Windows 11 22H2
+        # Change in Explorer the initial location to Computer and not Home Folder
+        Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'Launch to' -Value 1
+    }
 
     # Activate the Memory Integrity Protection
     #Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\SystemGuard' -Name 'Enabled' -Value 1
@@ -97,14 +108,13 @@ function ExplorerSettings {
 function InstallApps {
     winget uninstall MicrosoftTeams_8wekyb3d8bbwe --accept-source-agreements # Uninstall Microsoft Teams
     winget upgrade --all --accept-source-agreements # Update all apps
-    $Apps = 
-    @('XP9KHM4BK9FZ7Q', # VisualStudioCode
-    'Git.Git', # Git
+    $Apps = @('Git.Git', # Git
     '7zip.7zip', # 7zip
     'calibre.calibre', # Calibre
     'Valve.Steam', # Steam
     'Microsoft.OpenJDK.17', # Java
     'TheDocumentFoundation.LibreOffice', # LibreOffice
+    'XP9KHM4BK9FZ7Q', # VisualStudioCode
     '9NFH4HJG2Z9H', #qBittorrent
     'XP8JK4HZBVF435', #AutoDarkModeApp
     '9MZ1SNWT0N5D', # PowerShell Core
@@ -121,6 +131,7 @@ function InstallApps {
     '9MVZQVXJBQ9V', # AV1 Video Extension
     '9PG2DK419DRG', # Webp Image Extensions
     '9N4WGH0Z6VHQ' # HEVC Video Extensions
+    '9N4D0MSMP0PT' # Extensiones de vídeo VP9
     )
 
     foreach ($App in $Apps) {
@@ -135,6 +146,11 @@ function ConfigAutoDarkMode {
     Copy-Item -Path "$configDir\AutoDarkMode\config.yaml" -Destination "$AutoDarkModePath\config.yaml"
     Start-Process -FilePath "$env:LOCALAPPDATA\Programs\AutoDarkMode\AutoDarkModeSvc.exe"
     
+}
+
+function ConfigureGit ($gitName, $gitEmail) {
+    git config --global user.name $gitName
+    git config --global user.email $gitEmail
 }
 
 function ConfigWindowsTerminal {
@@ -156,17 +172,20 @@ function ConfigApps {
     #ConfigWindowsTerminal
 }
 
+function SystemClean {
+    # Cleanup the Recycle Bin
+    Clear-RecycleBin -Path 'C:\' -Force
+    cleanmgr /verylowdisk
+}
+
 WindowsUpdateSettings
 InstallWinGet
 InstallApps
 WindowsSheduler
 ExplorerSettings
+ConfigureGit("Alejandro Martín Pérez", "7107538+alexis900@users.noreply.github.com")
 ConfigApps
-
-
-# Clean the hard disk with cleanmgr for better performance
-#cleanmgr /verylowdisk
-
+SystemClean
 
 Write-Host -NoNewline -Object 'Press any key to return to the main menu...' -ForegroundColor Yellow
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
