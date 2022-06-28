@@ -2,8 +2,9 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 <#
 .SYNOPSIS
-Version: 0.4.3
+Version: 0.4.4
 This script will install and configure the following components on the target home computer in Windows 11 or later:
+- Change a new name to the computer
 - Windows Update
 - Install winget
 - Install initial software
@@ -19,12 +20,26 @@ Run the script with:
 - This script is intended to be run on a Windows 11 or later home computer.
 - This script is intended to be run as an Administrator.
 #>
-$appsDir = "$PSScriptRoot\Apps"
-$configDir = "$PSScriptRoot\Configs"
+Set-Variable -Name appsDir -Value "$PSScriptRoot\Apps" -Description "mred variable" -Option ReadOnly
+Set-Variable -Name configDir -Value "$PSScriptRoot\Configs" -Description "mred variable" -Option ReadOnly
 
 # Get Windows build number
+
 $currentWindowsBuild = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'CurrentBuild').CurrentBuild
 
+function RenameComputer ($computerName) {
+    if ($computerName -eq "") {
+        $computerName = $env:COMPUTERNAME
+    }
+    $computerName = $computerName.Trim()
+    $confirm = "N"
+    $confirm = ReadHost("Renaming computer to $computerName. Are you sure you want to continue? (y/N)") 
+    if ($confirm -eq "y" -or $confirm -eq "Y") {
+        Rename-Computer -NewName $computerName
+    } else {
+        Write-Host "Computer name change aborted."
+    }
+}
 function WindowsUpdateSettings {
     $wupdate = {
         Install-WindowsUpdate -NotCategory "Drivers" -MicrosoftUpdate -AcceptAll -IgnoreReboot
@@ -43,6 +58,11 @@ function TestPath ($Path) {
         New-Item -ItemType Directory -Path $Path
     }
 }
+
+function ReadHost ($Text){
+    $var = Read-Host $Text
+    return $var
+} 
 
 function InstallWinGet {
     Import-Module Appx
@@ -75,6 +95,9 @@ function ExplorerSettings {
     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'ShowFileExt' -Value 1
     # Show the full path in Explorer
     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'ShowFullPathInTitle' -Value 1
+
+    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer' -Name 'ShowCloudFilesInQuickAccess' -Value 0
+    
     if ($currentWindowsBuild -ge 17763 ) { # Windows 10 1809
         #Enable Clipboard History Settings
         Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Clipboard' -Name 'EnableClipboardHistory' -Value 1
@@ -148,7 +171,7 @@ function ConfigAutoDarkMode {
     
 }
 
-function ConfigureGit ($gitName, $gitEmail) {
+function ConfigGit ($gitName, $gitEmail) {
     git config --global user.name $gitName
     git config --global user.email $gitEmail
 }
@@ -169,6 +192,7 @@ function WindowsSheduler {
 
 function ConfigApps {
     ConfigAutoDarkMode
+    ConfigGit("Alejandro Martín Pérez", "7107538+alexis900@users.noreply.github.com")
     #ConfigWindowsTerminal
 }
 
@@ -178,14 +202,17 @@ function SystemClean {
     cleanmgr /verylowdisk
 }
 
+RenameComputer(ReadHost("Set the new computer name"))
 WindowsUpdateSettings
 InstallWinGet
 InstallApps
 WindowsSheduler
 ExplorerSettings
-ConfigureGit("Alejandro Martín Pérez", "7107538+alexis900@users.noreply.github.com")
 ConfigApps
 SystemClean
+
+# Reboot the computer to apply the changes
+Restart-Computer
 
 Write-Host -NoNewline -Object 'Press any key to return to the main menu...' -ForegroundColor Yellow
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
