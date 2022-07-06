@@ -8,6 +8,7 @@ This script will install and configure the following components on the target ho
 - Windows Update
 - Install winget
 - Install initial software from apps.json
+- Configure Git*
 - Configure Windows Shell
 - Import Shedule Tasks 
 - Cleanup disk space
@@ -149,11 +150,10 @@ function ConfigAutoDarkMode {
     }
 }
 
-function ConfigGit ($gitName, $gitEmail) {
+function ConfigGit {
     # Test if Git is installed
     if (Test-Path -Path "C:\Program Files\Git\bin\git.exe" -or "C:\Program Files (x86)\Git\bin\git.exe") {
-        git config --global user.name $gitName
-        git config --global user.email $gitEmail
+        Copy-Item -Path "$configDir\Git\.gitconfig" -Destination "$env:USERPROFILE\.gitconfig"
     }
 }
 
@@ -173,7 +173,7 @@ function WindowsSheduler {
 
 function ConfigApps {
     ConfigAutoDarkMode
-    ConfigGit("Alejandro Martín Pérez", "7107538+alexis900@users.noreply.github.com")
+    ConfigGit
     #ConfigWindowsTerminal
 }
 
