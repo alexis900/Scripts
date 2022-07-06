@@ -2,12 +2,12 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 <#
 .SYNOPSIS
-Version: 0.4.4
+Version: 0.4.5
 This script will install and configure the following components on the target home computer in Windows 11 or later:
 - Change a new name to the computer
 - Windows Update
 - Install winget
-- Install initial software
+- Install initial software from apps.json
 - Configure Windows Shell
 - Import Shedule Tasks 
 - Cleanup disk space
@@ -59,7 +59,7 @@ function TestPath ($Path) {
     }
 }
 
-function ReadHost ($Text){
+function ReadHost ($Text) {
     $var = Read-Host $Text
     return $var
 } 
@@ -76,10 +76,10 @@ function InstallWinGet {
     TestPath $appsDir
 
     if (Test-Path -Path "$VCLibsPath" -and $currentWindowsBuild -lt 22000) {
-            Add-AppxPackage -Path "$VCLibsPath"
+        Add-AppxPackage -Path "$VCLibsPath"
     } else {
-            Invoke-WebRequest -Uri $URLVClibs -OutFile $VCLibsPath
-            Add-AppxPackage -Path $VCLibsPath
+        Invoke-WebRequest -Uri $URLVClibs -OutFile $VCLibsPath
+        Add-AppxPackage -Path $VCLibsPath
     }
     
     if (Test-Path -Path $AppInstallerPath) {
@@ -98,12 +98,14 @@ function ExplorerSettings {
 
     Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer' -Name 'ShowCloudFilesInQuickAccess' -Value 0
     
-    if ($currentWindowsBuild -ge 17763 ) { # Windows 10 1809
+    if ($currentWindowsBuild -ge 17763 ) {
+        # Windows 10 1809
         #Enable Clipboard History Settings
         Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Clipboard' -Name 'EnableClipboardHistory' -Value 1
     }
 
-    if ($currentWindowsBuild -ge 22000) { # Windows 11 21H2
+    if ($currentWindowsBuild -ge 22000) {
+        # Windows 11 21H2
         # Set Start Menu in Left
         Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'TaskbarAl' -Value 0
         # Hide Chat in Taskbar
@@ -118,7 +120,8 @@ function ExplorerSettings {
         Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location' -Name 'Value' -Value 'Allow'
     }
 
-    if ($currentWindowsBuild -ge 22621) { # Windows 11 22H2
+    if ($currentWindowsBuild -ge 22621) {
+        # Windows 11 22H2
         # Change in Explorer the initial location to Computer and not Home Folder
         Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'Launch to' -Value 1
     }
@@ -129,51 +132,29 @@ function ExplorerSettings {
 }
 
 function InstallApps {
-    winget uninstall MicrosoftTeams_8wekyb3d8bbwe --accept-source-agreements # Uninstall Microsoft Teams
-    winget upgrade --all --accept-source-agreements # Update all apps
-    $Apps = @('Git.Git', # Git
-    '7zip.7zip', # 7zip
-    'calibre.calibre', # Calibre
-    'Valve.Steam', # Steam
-    'Microsoft.OpenJDK.17', # Java
-    'TheDocumentFoundation.LibreOffice', # LibreOffice
-    'XP9KHM4BK9FZ7Q', # VisualStudioCode
-    '9NFH4HJG2Z9H', #qBittorrent
-    'XP8JK4HZBVF435', #AutoDarkModeApp
-    '9MZ1SNWT0N5D', # PowerShell Core
-    '9NBDXK71NK08', # WhatsApp Beta
-    '9N97ZCKPD60Q', # Unigram
-    'XPDP273C0XHQH2', # Adobe Acrobat Reader DC
-    'XPDM1ZW6815MQM', # VLC
-    '9NCBCSZSJRSB', # Spotify
-    '9N1Z0JXB224X', # UUP Media Creator
-    '9NGHP3DX8HDX', # Files
-    '9ND14WHFRGSX', # Modern Winver
-    '9PMMSR1CGPWG', # HEIF Image Extensions
-    '9N95Q1ZZPMH4', # MPEG-2 Video Extension
-    '9MVZQVXJBQ9V', # AV1 Video Extension
-    '9PG2DK419DRG', # Webp Image Extensions
-    '9N4WGH0Z6VHQ' # HEVC Video Extensions
-    '9N4D0MSMP0PT' # Extensiones de vídeo VP9
-    )
-
-    foreach ($App in $Apps) {
-        winget install --id=$App --silent --accept-package-agreements --accept-source-agreements
-    }
+    # Update all apps
+    winget upgrade --all --accept-package-agreements --accept-source-agreements
+    # Import apps from apps.json file
+    winget import -i apps.json --ignore-unavailable --accept-package-agreements --accept-source-agreements
 }
 
 function ConfigAutoDarkMode {
-    $AutoDarkModePath = "$env:APPDATA\AutoDarkMode"
-    TestPath = $AutoDarkModePath
-    # Copy the config file and initialize the AutoDarkMode
-    Copy-Item -Path "$configDir\AutoDarkMode\config.yaml" -Destination "$AutoDarkModePath\config.yaml"
-    Start-Process -FilePath "$env:LOCALAPPDATA\Programs\AutoDarkMode\AutoDarkModeSvc.exe"
-    
+    # Test if AutoDarkMode is installed
+    if (Test-Path "$env:LOCALAPPDATA\Programs\AutoDarkMode\AutoDarkModeSvc.exe") {
+        $AutoDarkModePath = "$env:APPDATA\AutoDarkMode"
+        TestPath = $AutoDarkModePath
+        # Copy the config file and initialize the AutoDarkMode
+        Copy-Item -Path "$configDir\AutoDarkMode\config.yaml" -Destination "$AutoDarkModePath\config.yaml"
+        Start-Process -FilePath "$env:LOCALAPPDATA\Programs\AutoDarkMode\AutoDarkModeSvc.exe"
+    }
 }
 
 function ConfigGit ($gitName, $gitEmail) {
-    git config --global user.name $gitName
-    git config --global user.email $gitEmail
+    # Test if Git is installed
+    if (Test-Path -Path "C:\Program Files\Git\bin\git.exe" -or "C:\Program Files (x86)\Git\bin\git.exe") {
+        git config --global user.name $gitName
+        git config --global user.email $gitEmail
+    }
 }
 
 function ConfigWindowsTerminal {

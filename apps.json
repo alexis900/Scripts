@@ -1,86 +1,104 @@
-[
+{
+  "$schema" : "https://aka.ms/winget-packages.schema.2.0.json",
+  "WinGetVersion": "0.3.11201",
+  "Sources": [
     {
-        "name" : "Git",
-        "id" : "Git.Git"
+      "Packages": [
+        { "PackageIdentifier": "7zip.7zip"},
+        { "PackageIdentifier": "calibre.calibre"},
+        { "PackageIdentifier": "Valve.Steam"},
+        { "PackageIdentifier": "Microsoft.OpenJDK.17"},
+        { "PackageIdentifier": "TheDocumentFoundation.LibreOffice"},
+        { "PackageIdentifier": "qBittorrent.qBittorrent"},
+        { "PackageIdentifier": "Git.Git"}
+      ],
+      "SourceDetails": {
+        "Argument": "https://winget.azureedge.net/cache",
+        "Identifier": "Microsoft.Winget.Source_8wekyb3d8bbwe",
+        "Name": "winget",
+        "Type": "Microsoft.PreIndexed.Package"
+      }
     },
     {
-        "name" : "7-Zip",
-        "id" : "7-Zip.7-Zip"
-    },
-    {
-        "name" : "Calibre",
-        "id" : "Calibre.Calibre"
-    },
-    {
-        "name" : "Steam",
-        "id" : "Valve.Steam"
-    },
-    {
-        "name" : "OpenJDK",
-        "id" : "Microsoft.OpenJDK.17"
-    },
-    {
-        "name": "LibreOffice",
-        "id": "TheDocumentFoundation.LibreOffice"
-    },
-    {
-        "name": "Visual Studio Code",
-        "id": "XP9KHM4BK9FZ7Q"
-    },
-    {
-        "name": "qBittorrent",
-        "id": "9NFH4HJG2Z9H"
-    },
-    {
-        "name": "AutoDarkModeApp",
-        "id": "XP8JK4HZBVF435"
-    },
-    {
-        "name": "PowerShell Core",
-        "id": "9MZ1SNWT0N5D"
-    },
-    {
-        "name": "WhatsApp Beta",
-        "id": "9NBDXK71NK08"
-    },
-    {
-        "name": "Adobe Acrobat Reader DC",
-        "id": "XPDP273C0XHQH2"
-    },
-    {
-        "name": "Spotify",
-        "id": "9NCBCSZSJRSB"
-    },
-    {
-        "name": "UUP Media Creator",
-        "id": "9N1Z0JXB224X"
-    },
-    {
-        "name": "Files",
-        "id": "9NGHP3DX8HDX"
-    },
-    {
-        "name": "Modern Winver",
-        "id": "9ND14WHFRGSX"
-    },
-    {
-        "name": "HEIF Image Extensions",
-        "id": "9PMMSR1CGPWG"
-    },
-    {
-        "name": "MPEG-2 Video Extension",
-        "id": "9N95Q1ZZPMH4"
-    },
-    {
-        "name": "AV1 Video Extension",
-        "id": "9MVZQVXJBQ9V"
-    },
-    {
-        "name": "Webp Image Extensions",
-        "id": "9PG2DK419DRG"
-    },
-    {
-        "name": "HEVC Video Extensions",
-        "id": "9N4WGH0Z6VHQ"
+        "Packages" : 
+        [
+            {
+                "PackageIdentifier" : "XP9KHM4BK9FZ7Q",
+                "PackageName": "Visual Studio Code"
+            },
+            {
+                "PackageIdentifier" : "XP8JK4HZBVF435",
+                "PackageName": "AutoDarkMode"
+            },
+            {
+                "PackageIdentifier" : "9MZ1SNWT0N5D",
+                "PackageName": "PowerShell Core"
+            },
+            {
+                "PackageIdentifier": "9NBDXK71NK08",
+                "PackageName": "WhatsApp Beta"
+            },
+            {
+                "PackageIdentifier": "9N97ZCKPD60Q",
+                "PackageName": "Unigram"
+            },
+            {
+                "PackageIdentifier": "XPDP273C0XHQH2",
+                "PackageName": "Adobe Acrobat Reader DC"
+            },
+            {
+                "PackageIdentifier": "XPDM1ZW6815MQM",
+                "PackageName": "VLC"
+            },
+            {
+                "PackageIdentifier": "9NCBCSZSJRSB",
+                "PackageName": "Spotify"
+            },
+            {
+                "PackageIdentifier": "9N1Z0JXB224X",
+                "PackageName": "UUP Media Creator"
+            }
+            ,
+            {
+                "PackageIdentifier": "9NGHP3DX8HDX",
+                "PackageName": "Files"
+            },
+            {
+                "PackageIdentifier": "9ND14WHFRGSX",
+                "PackageName": "Modern Winver"
+            },
+            {
+                "PackageIdentifier": "9PMMSR1CGPWG",
+                "PackageName": "HEIF Image Extensions"
+            },
+            {
+                "PackageIdentifier": "9N95Q1ZZPMH4",
+                "PackageName": "MPEG-2 Video Extension"
+            },
+            {
+                "PackageIdentifier": "9MVZQVXJBQ9V",
+                "PackageName": "AV1 Video Extension"
+            },
+            {
+                "PackageIdentifier": "9PG2DK419DRG",
+                "PackageName": "Webp Image Extensions"
+            },
+            {
+                "PackageIdentifier": "9N4WGH0Z6VHQ",
+                "PackageName": "HEVC Video Extensions"
+            },
+            {
+                "PackageIdentifier": "9N4D0MSMP0PT",
+                "PackageName": "VP9 Video Extension"
+            }
+        ],
+        "SourceDetails" : 
+        {
+            "Argument" : "https://storeedgefd.dsx.mp.microsoft.com/v9.0",
+            "Identifier" : "StoreEdgeFD",
+            "Name" : "msstore",
+            "Type" : "Microsoft.Rest"
+        }
     }
-]
+  ]
+}
