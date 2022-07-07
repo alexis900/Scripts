@@ -2,7 +2,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 
 <#
 .SYNOPSIS
-Version: 0.4.5
+Version: 0.4.6
 This script will install and configure the following components on the target home computer in Windows 11 or later:
 - Change a new name to the computer
 - Windows Update
@@ -28,13 +28,14 @@ Set-Variable -Name configDir -Value "$PSScriptRoot\Configs" -Description "mred v
 
 $currentWindowsBuild = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'CurrentBuild').CurrentBuild
 
-function RenameComputer ($computerName) {
+function RenameComputer{
+    $computerName = Read-Host "Set the new computer name"
     if ($computerName -eq "") {
         $computerName = $env:COMPUTERNAME
     }
     $computerName = $computerName.Trim()
     $confirm = "N"
-    $confirm = ReadHost("Renaming computer to $computerName. Are you sure you want to continue? (y/N)") 
+    $confirm = Read-Host "Renaming computer from $env:COMPUTERNAME to $computerName. Are you sure you want to continue? (y/N)" 
     if ($confirm -eq "y" -or $confirm -eq "Y") {
         Rename-Computer -NewName $computerName
     } else {
@@ -159,9 +160,10 @@ function ConfigGit {
 
 function ConfigWindowsTerminal {
     # Set Windows Terminal as default
-    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'NewProgID' -Value 'Microsoft.WindowsTerminal_8wekyb3d8bbwe'
+    Set-ItemProperty -Path 'HKCU:\Console\%%Startup' -Name 'DelegationConsole' -Value '{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}'
+    Set-ItemProperty -Path 'HKCU:\Console\%%Startup' -Name 'DelegationTerminal' -Value '{E12CFF52-A866-4C77-9A90-F570A7AA2C6B}'
     # Copy Settings file
-    Copy-Item -Path "$configDir\Windows Terminal\settings.json" -Destination "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+    #Copy-Item -Path "$configDir\Windows Terminal\settings.json" -Destination "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 }
 
 function WindowsSheduler {
@@ -173,8 +175,8 @@ function WindowsSheduler {
 
 function ConfigApps {
     ConfigAutoDarkMode
+    ConfigWindowsTerminal
     ConfigGit
-    #ConfigWindowsTerminal
 }
 
 function SystemClean {
@@ -183,7 +185,7 @@ function SystemClean {
     cleanmgr /verylowdisk
 }
 
-RenameComputer(ReadHost("Set the new computer name"))
+RenameComputer
 WindowsUpdateSettings
 InstallWinGet
 InstallApps
