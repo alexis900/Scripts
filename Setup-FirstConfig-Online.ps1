@@ -161,7 +161,7 @@ function ConfigureOhMyPosh {
         # Install Terminal-Icons from PSGallery
         Install-Module -Name Terminal-Icons -Repository PSGallery
         # Copy the config file of PowerShell that is used by oh-my-posh
-        Copy-Item -Paht $configDir/OhMyPosh/Microsoft.PowerShell_profile.ps1 $PROFILE
+        Copy-Item -Path $configDir/OhMyPosh/Microsoft.PowerShell_profile.ps1 -Destination $PROFILE
         # Create the folder for the fonts
         TestPath($tempDownloadDir)
         # Download and install the fonts
