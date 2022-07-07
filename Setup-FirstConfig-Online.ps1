@@ -21,8 +21,9 @@ Run the script with:
 - This script is intended to be run on a Windows 11 or later home computer.
 - This script is intended to be run as an Administrator.
 #>
-Set-Variable -Name appsDir -Value "$PSScriptRoot\Apps" -Description "mred variable" -Option ReadOnly
-Set-Variable -Name configDir -Value "$PSScriptRoot\Configs" -Description "mred variable" -Option ReadOnly
+Set-Variable -Name appsDir -Value "$PSScriptRoot\Apps" -Option ReadOnly
+Set-Variable -Name configDir -Value "$PSScriptRoot\Configs" -Option ReadOnly
+Set-Variable -Name tempDownloadDir -Value "C:\Temp" -Option ReadOnly
 
 # Get Windows build number
 
@@ -55,16 +56,6 @@ function WindowsUpdateSettings {
         Invoke-Command -ScriptBlock $wupdate
     }  
 }
-function TestPath ($Path) {
-    if (-not(Test-Path $Path)) {
-        New-Item -ItemType Directory -Path $Path
-    }
-}
-
-function ReadHost ($Text) {
-    $var = Read-Host $Text
-    return $var
-} 
 
 function InstallWinGet {
     Import-Module Appx
@@ -166,6 +157,24 @@ function ConfigWindowsTerminal {
     #Copy-Item -Path "$configDir\Windows Terminal\settings.json" -Destination "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 }
 
+function ConfigureOhMyPosh {
+    $fontsFolder = "$tempDownloadDir\Meslo"
+    if (Test-Path -Path "$env:LOCALAPPDATA\Programs\oh-my-posh\bin\oh-my-posh.exe") {
+        # Install Terminal-Icons from PSGallery
+        Install-Module -Name Terminal-Icons -Repository PSGallery
+        # Copy the config file of PowerShell that is used by oh-my-posh
+        Copy-Item -Path $configDir/OhMyPosh/Microsoft.PowerShell_profile.ps1 -Destination $PROFILE
+        # Create the folder for the fonts
+        TestPath($tempDownloadDir)
+        # Download and install the fonts
+        Invoke-WebRequest -Uri "https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip" -OutFile "$tempDownloadDir\Meslo.zip"
+        Expand-Archive -Path "$fontsFolder.zip" -DestinationPath $fontsFolder
+        Install-Fonts($fontsFolder)
+        # Delete the temp folder
+        Remove-Item -Path $tempDownloadDir -Recurse
+    }
+}
+
 function WindowsSheduler {
     # Create Sheduler Task to Sync Time 
     Register-ScheduledTask -Xml (Get-Content ("$configDir\Scheduler\SyncTime.xml") | Out-String ) -TaskName "SyncTime"
@@ -177,6 +186,7 @@ function ConfigApps {
     ConfigAutoDarkMode
     ConfigWindowsTerminal
     ConfigGit
+    ConfigureOhMyPosh
 }
 
 function SystemClean {

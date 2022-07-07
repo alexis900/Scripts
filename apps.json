@@ -90,6 +90,10 @@
             {
                 "PackageIdentifier": "9N4D0MSMP0PT",
                 "PackageName": "VP9 Video Extension"
+            },
+            {
+                "PackageIdentifier": "XP8K0HKJFRXGCK",
+                "PackageName": "OhMyPosh"
             }
         ],
         "SourceDetails" : 
