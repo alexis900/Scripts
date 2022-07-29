@@ -215,7 +215,18 @@ function ConfigApps {
 
 function SystemClean {
     # Cleanup the Recycle Bin
-    Clear-RecycleBin -Path 'C:\' -Force
+    Clear-RecycleBin -Force
+    # Clean up the temp folder
+    Remove-Item -Path $env:TEMP/ -Recurse -Force 2> $null
+    # Clean up the Windows Update cache
+    if (Test-Path -Path "C:\Windows\SoftwareDistribution\Download") {
+        Remove-Item -Path "C:\Windows\SoftwareDistribution\Download" -Recurse -Force 2> $null
+    }
+
+    if (Test-Path -Path 'C:\$WINDOWS.~BT') {
+        Remove-Item -Path 'C:\$WINDOWS.~BT' -Recurse -Force 2> $null
+    }
+
     cleanmgr /verylowdisk
 }
 
@@ -229,7 +240,7 @@ ConfigApps
 SystemClean
 
 # Reboot the computer to apply the changes
-Restart-Computer
+#Restart-Computer
 
 Write-Host -NoNewline -Object 'Press any key to return to the main menu...' -ForegroundColor Yellow
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
