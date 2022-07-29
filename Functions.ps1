@@ -16,3 +16,5 @@ function Install-Fonts($Path){
         }
     }
 }
+
+Export-ModuleMember -Function TestPath, Install-Fonts

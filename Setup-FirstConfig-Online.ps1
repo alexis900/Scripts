@@ -25,11 +25,30 @@ Set-Variable -Name appsDir -Value "$PSScriptRoot\Apps" -Option ReadOnly
 Set-Variable -Name configDir -Value "$PSScriptRoot\Configs" -Option ReadOnly
 Set-Variable -Name tempDownloadDir -Value "C:\Temp" -Option ReadOnly
 
+function TestPath ($Path) {
+    if (-not(Test-Path $Path)) {
+        New-Item -ItemType Directory -Path $Path
+    }
+}
+
+function Install-Fonts($Path){
+    # Install fonts from the downloaded folder
+
+    $fonts = (New-Object -ComObject Shell.Application).Namespace(0x14)
+    foreach ($file in Get-ChildItem $Path\*.ttf) {
+        $fileName = $file.Name
+        if (-not(Test-Path -Path "C:\Windows\fonts\$fileName" )) {
+        Write-Host $fileName
+        Get-ChildItem $file | ForEach-Object { $fonts.CopyHere($_.fullname) }
+        }
+    }
+}
+
 # Get Windows build number
 
 $currentWindowsBuild = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'CurrentBuild').CurrentBuild
 
-function RenameComputer{
+function RenameComputer {
     $computerName = Read-Host "Set the new computer name"
     if ($computerName -eq "") {
         $computerName = $env:COMPUTERNAME
@@ -66,13 +85,12 @@ function InstallWinGet {
     $VCLibsPath = "$appsDir\$VCLibs"
     $AppInstallerPath = "$appsDir\$AppInstaller"
 
-    TestPath $appsDir
-
-    if (Test-Path -Path "$VCLibsPath" -and $currentWindowsBuild -lt 22000) {
-        Add-AppxPackage -Path "$VCLibsPath"
+    TestPath($appsDir)
+    if ((Test-Path -Path "$VCLibsPath") -and ($currentWindowsBuild -lt 22000)) {
+            Add-AppxPackage -Path "$VCLibsPath"
     } else {
-        Invoke-WebRequest -Uri $URLVClibs -OutFile $VCLibsPath
-        Add-AppxPackage -Path $VCLibsPath
+            Invoke-WebRequest -Uri $URLVClibs -OutFile $VCLibsPath
+            Add-AppxPackage -Path $VCLibsPath
     }
     
     if (Test-Path -Path $AppInstallerPath) {
@@ -82,41 +100,42 @@ function InstallWinGet {
         Add-AppxPackage -Path $AppInstallerPath
     }
 }
-
 function ExplorerSettings {
-    # Allwais show file extensions in Explorer
-    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'ShowFileExt' -Value 1
-    # Show the full path in Explorer
-    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'ShowFullPathInTitle' -Value 1
+    $CurrentVersionRegistryPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion"
+    $ExplorerRegistryPath = "$CurrentVersionRegistryPath\Explorer"
+    $AdvancedRegistryPath = "$ExplorerRegistryPath\Advanced"
 
-    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer' -Name 'ShowCloudFilesInQuickAccess' -Value 0
+    # Allwais show file extensions in Explorer
+    Set-ItemProperty -Path $AdvancedRegistryPath -Name 'ShowFileExt' -Value 1
+    # Show the full path in Explorer
+    Set-ItemProperty -Path $AdvancedRegistryPath -Name 'ShowFullPathInTitle' -Value 1
+
+    Set-ItemProperty -Path $ExplorerRegistryPath -Name 'ShowCloudFilesInQuickAccess' -Value 0
     
     if ($currentWindowsBuild -ge 17763 ) {
         # Windows 10 1809
         #Enable Clipboard History Settings
         Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Clipboard' -Name 'EnableClipboardHistory' -Value 1
     }
-
     if ($currentWindowsBuild -ge 22000) {
         # Windows 11 21H2
         # Set Start Menu in Left
-        Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'TaskbarAl' -Value 0
+        Set-ItemProperty -Path $AdvancedRegistryPath -Name 'TaskbarAl' -Value 0
         # Hide Chat in Taskbar
-        Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'TaskbarMn' -Value 0
+        Set-ItemProperty -Path $AdvancedRegistryPath -Name 'TaskbarMn' -Value 0
         # Hide Taskview in Taskbar
-        Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'ShowTaskViewButton' -Value 0
+        Set-ItemProperty -Path $AdvancedRegistryPath -Name 'ShowTaskViewButton' -Value 0
         # Hide Taskview in Taskbar
-        Set-ItemProperty -Path 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'Start_Layout' -Value 1
+        Set-ItemProperty -Path $AdvancedRegistryPath -Name 'Start_Layout' -Value 1
         # Disable show recent files in Start Menu
-        Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\' -Name 'Start_TrackDocs' -Value 0
+        Set-ItemProperty -Path $AdvancedRegistryPath -Name 'Start_TrackDocs' -Value 0
         # Enable Location Settings
-        Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location' -Name 'Value' -Value 'Allow'
+        Set-ItemProperty -Path "$CurrentVersionRegistryPath\CapabilityAccessManager\ConsentStore\location" -Name 'Value' -Value 'Allow'
     }
-
     if ($currentWindowsBuild -ge 22621) {
         # Windows 11 22H2
         # Change in Explorer the initial location to Computer and not Home Folder
-        Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'Launch to' -Value 1
+        Set-ItemProperty -Path $AdvancedRegistryPath -Name 'Launch to' -Value 1
     }
 
     # Activate the Memory Integrity Protection
@@ -126,9 +145,9 @@ function ExplorerSettings {
 
 function InstallApps {
     # Update all apps
-    winget upgrade --all --accept-package-agreements --accept-source-agreements
+    winget upgrade --all
     # Import apps from apps.json file
-    winget import -i apps.json --ignore-unavailable --accept-package-agreements --accept-source-agreements
+    winget import -i "$configDir/apps.json" --ignore-unavailable --accept-package-agreements --accept-source-agreements
 }
 
 function ConfigAutoDarkMode {
@@ -144,30 +163,35 @@ function ConfigAutoDarkMode {
 
 function ConfigGit {
     # Test if Git is installed
-    if (Test-Path -Path "C:\Program Files\Git\bin\git.exe" -or "C:\Program Files (x86)\Git\bin\git.exe") {
+    if ((Test-Path -Path "C:\Program Files\Git\bin\git.exe") -or (Test-Path -Path "C:\Program Files (x86)\Git\bin\git.exe")) {
         Copy-Item -Path "$configDir\Git\.gitconfig" -Destination "$env:USERPROFILE\.gitconfig"
+        Copy-Item -Path "$configDir\Git\gitconfig" -Destination "C:\Program Files\Git\etc\gitconfig"
     }
 }
 
 function ConfigWindowsTerminal {
     # Set Windows Terminal as default
-    Set-ItemProperty -Path 'HKCU:\Console\%%Startup' -Name 'DelegationConsole' -Value '{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}'
-    Set-ItemProperty -Path 'HKCU:\Console\%%Startup' -Name 'DelegationTerminal' -Value '{E12CFF52-A866-4C77-9A90-F570A7AA2C6B}'
+    $ConsoleRegistryPath = "HKCU:\Console\%%Startup"
+    New-Item –Path "HKCU:\Console" –Name "%%Startup"
+    Set-ItemProperty -Path $ConsoleRegistryPath -Name 'DelegationConsole' -Value '{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}'
+    Set-ItemProperty -Path $ConsoleRegistryPath -Name 'DelegationTerminal' -Value '{E12CFF52-A866-4C77-9A90-F570A7AA2C6B}'
     # Copy Settings file
     #Copy-Item -Path "$configDir\Windows Terminal\settings.json" -Destination "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 }
 
 function ConfigureOhMyPosh {
+    $fontURL = "https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip"
     $fontsFolder = "$tempDownloadDir\Meslo"
     if (Test-Path -Path "$env:LOCALAPPDATA\Programs\oh-my-posh\bin\oh-my-posh.exe") {
         # Install Terminal-Icons from PSGallery
-        Install-Module -Name Terminal-Icons -Repository PSGallery
+        Install-Module -Name Terminal-Icons -Repository PSGallery -Force
+        Install-Module -Name posh-git -Repository PSGallery -Force
         # Copy the config file of PowerShell that is used by oh-my-posh
-        Copy-Item -Path $configDir/OhMyPosh/Microsoft.PowerShell_profile.ps1 -Destination $PROFILE
+        Copy-Item -Path $configDir/PowerShell/Microsoft.PowerShell_profile.ps1 -Destination $PROFILE
         # Create the folder for the fonts
         TestPath($tempDownloadDir)
         # Download and install the fonts
-        Invoke-WebRequest -Uri "https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip" -OutFile "$tempDownloadDir\Meslo.zip"
+        Invoke-WebRequest -Uri $fontURL -OutFile "$fontsFolder.zip"
         Expand-Archive -Path "$fontsFolder.zip" -DestinationPath $fontsFolder
         Install-Fonts($fontsFolder)
         # Delete the temp folder
