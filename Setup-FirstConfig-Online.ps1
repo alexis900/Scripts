@@ -78,7 +78,7 @@ function WindowsUpdateSettings {
 
 function InstallWinGet {
     Import-Module Appx
-    $URLVClibs = "https://download.microsoft.com/download/4/7/c/47c6134b-d61f-4024-83bd-b9c9ea951c25/14.0.30035.0-Desktop/Microsoft.VCLibs.x64.14.00.Desktop.appx"
+    $URLVClibs = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
     $URLAppInstaller = "https://github.com/microsoft/winget-cli/releases/download/v1.3.1391-preview/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     $VCLibs = $URLVClibs.Split('/')[-1]
     $AppInstaller = $URLAppInstaller.Split('/')[-1]
@@ -145,7 +145,7 @@ function ExplorerSettings {
 
 function InstallApps {
     # Update all apps
-    winget upgrade --all
+    winget upgrade --all --accept-source-agreements
     # Import apps from apps.json file
     winget import -i "$configDir/apps.json" --ignore-unavailable --accept-package-agreements --accept-source-agreements
 }
@@ -154,8 +154,8 @@ function ConfigAutoDarkMode {
     # Test if AutoDarkMode is installed
     if (Test-Path "$env:LOCALAPPDATA\Programs\AutoDarkMode\AutoDarkModeSvc.exe") {
         $AutoDarkModePath = "$env:APPDATA\AutoDarkMode"
-        TestPath = $AutoDarkModePath
         # Copy the config file and initialize the AutoDarkMode
+        TestPath($AutoDarkModePath)
         Copy-Item -Path "$configDir\AutoDarkMode\config.yaml" -Destination "$AutoDarkModePath\config.yaml"
         Start-Process -FilePath "$env:LOCALAPPDATA\Programs\AutoDarkMode\AutoDarkModeSvc.exe"
     }
@@ -172,7 +172,7 @@ function ConfigGit {
 function ConfigWindowsTerminal {
     # Set Windows Terminal as default
     $ConsoleRegistryPath = "HKCU:\Console\%%Startup"
-    New-Item –Path "HKCU:\Console" –Name "%%Startup"
+    New-ItemProperty –Path "HKCU:\Console" –Name "%%Startup"
     Set-ItemProperty -Path $ConsoleRegistryPath -Name 'DelegationConsole' -Value '{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}'
     Set-ItemProperty -Path $ConsoleRegistryPath -Name 'DelegationTerminal' -Value '{E12CFF52-A866-4C77-9A90-F570A7AA2C6B}'
     # Copy Settings file
@@ -218,16 +218,11 @@ function SystemClean {
     Clear-RecycleBin -Force
     # Clean up the temp folder
     Remove-Item -Path "$env:TEMP\*" -Recurse -Force 2> $null
-    Remove-Item -Path "C:\Windows\Temp\*" -Recurse 2> $null
-    Remove-Item -Path "C:\Windows\Prefetch\*" -Recurse 2> $null
-    Remove-Item -Path "C:\Documents and Settings\\*\Local Settings\temp\*" -Recurse 2> $null
-    # Clean up the Windows Update cache
-    if (Test-Path -Path "C:\Windows\SoftwareDistribution\Download") {
-        Remove-Item -Path "C:\Windows\SoftwareDistribution\Download\*" -Recurse -Force 2> $null
-    }
-
-    if (Test-Path -Path 'C:\$WINDOWS.~BT') {
-        Remove-Item -Path 'C:\$WINDOWS.~BT' -Recurse -Force 2> $null
+    Remove-Item -Path "C:\Windows\Temp\*" -Recurse -Force 2> $null
+    Remove-Item -Path "C:\Windows\Prefetch\*" -Recurse -Force 2> $null
+    Remove-Item -Path "C:\Windows\SoftwareDistribution\Download\*" -Recurse -Force 2> $null
+    Remove-Item -Path "C:\Documents and Settings\*\Local Settings\temp\*" -Recurse -Force 2> $null
+    Remove-Item -Path 'C:\$WINDOWS.~BT' -Recurse -Force 2> $null
     }
 
     cleanmgr /verylowdisk
