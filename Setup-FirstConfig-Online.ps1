@@ -105,7 +105,7 @@ function ExplorerSettings {
     $ExplorerRegistryPath = "$CurrentVersionRegistryPath\Explorer"
     $AdvancedRegistryPath = "$ExplorerRegistryPath\Advanced"
 
-    # Allwais show file extensions in Explorer
+    # Show file extensions in Explorer
     Set-ItemProperty -Path $AdvancedRegistryPath -Name 'ShowFileExt' -Value 1
     # Show the full path in Explorer
     Set-ItemProperty -Path $AdvancedRegistryPath -Name 'ShowFullPathInTitle' -Value 1
@@ -148,6 +148,13 @@ function InstallApps {
     winget upgrade --all --accept-source-agreements
     # Import apps from apps.json file
     winget import -i "$configDir/apps.json" --ignore-unavailable --accept-package-agreements --accept-source-agreements
+}
+
+function ConfigWallpaper {
+    $WallpaperDest = "$env:WINDIR\Web\Wallpaper\MyWallpapers"
+    Copy-Item -Path "$configDir\AutoDarkMode\darkmode.theme" -Destination "$env:WINDIR\Resources\Themes\darkmode.theme"
+    TestPath($WallpaperDest)
+    Copy-Item -Path "$configDir\Wallpapers\*" -Destination $WallpaperDest
 }
 
 function ConfigAutoDarkMode {
@@ -207,6 +214,7 @@ function WindowsSheduler {
 }
 
 function ConfigApps {
+    ConfigWallpaper
     ConfigAutoDarkMode
     ConfigWindowsTerminal
     ConfigGit
@@ -223,7 +231,6 @@ function SystemClean {
     Remove-Item -Path "C:\Windows\SoftwareDistribution\Download\*" -Recurse -Force 2> $null
     Remove-Item -Path "C:\Documents and Settings\*\Local Settings\temp\*" -Recurse -Force 2> $null
     Remove-Item -Path 'C:\$WINDOWS.~BT' -Recurse -Force 2> $null
-    }
 
     cleanmgr /verylowdisk
 }

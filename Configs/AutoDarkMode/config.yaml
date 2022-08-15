@@ -3,7 +3,7 @@ Autostart:
   Validate: true
 WindowsThemeMode:
   Enabled: true
-  DarkThemePath: C:\Windows\Resources\Themes\dark.theme
+  DarkThemePath: C:\Windows\Resources\Themes\darkmode.theme
   LightThemePath: C:\Windows\Resources\Themes\aero.theme
   MonitorActiveTheme: false
 AppsSwitch:
